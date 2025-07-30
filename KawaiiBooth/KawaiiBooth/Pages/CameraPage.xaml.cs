@@ -1,16 +1,33 @@
 using Microsoft.Maui.Controls;
+using SkiaSharp;
 using System;
+using System.Reflection;
+using System.Text.Json;
 using static Microsoft.Maui.ApplicationModel.Permissions;
 
 namespace KawaiiBooth.Pages
 {
-    public partial class CameraPage : ContentPage
+    public partial class CameraPage : ContentPage, IQueryAttributable
     {
+        public void ApplyQueryAttributes(IDictionary<string, object> query)
+        {
+            if (query.TryGetValue("templateName", out var nameObj) && nameObj is string templateName)
+            {
+                LoadTemplate(templateName);
+            }
+        }
         public CameraPage()
         {
             InitializeComponent();
-
         }
+
+        private async void LoadTemplate(string templateName)
+        {
+            _template = await LoadTemplateFromResource(templateName);
+            await AnimatePhotoIndexAsync(1, _template.PhotoCount);
+        }
+        private List<Stream> _photoStreams = new();
+        private TemplateModel _template;
         private async Task AnimateCountdownAsync(int count)
         {
             for (int i = count; i > 0; i--)
@@ -37,56 +54,107 @@ namespace KawaiiBooth.Pages
         {
             // Cambiar entre cámara frontal y trasera
         }
+        public async Task<TemplateModel> LoadTemplateFromResource(string name)
+        {
+            var file = $"KawaiiBooth.Resources.Templates.{name}.json";
+            using var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(file);
+            using var reader = new StreamReader(stream);
+            var json = await reader.ReadToEndAsync();
+            return JsonSerializer.Deserialize<TemplateModel>(json);
+        }
+        private async Task GenerateFinalImageAsync()
+        {
+            var canvas = new SKBitmap(_template.CanvasWidth, _template.CanvasHeight);
+            using var surface = new SKCanvas(canvas);
+            surface.Clear(SKColors.White);
 
-        //private async void OnTakePhotoClicked(object sender, EventArgs e)
-        //{
-        //    try
-        //    {
-        //        await AnimateCountdownAsync(3);
+            // Fondo
+            if (!string.IsNullOrEmpty(_template.BackgroundBase64))
+            {
+                var bgBytes = Convert.FromBase64String(_template.BackgroundBase64);
+                using var bgStream = new SKManagedStream(new MemoryStream(bgBytes));
+                using var bgBitmap = SKBitmap.Decode(bgStream);
+                surface.DrawBitmap(bgBitmap, new SKRect(0, 0, canvas.Width, canvas.Height));
+            }
 
-        //        // Pedir permiso si hace falta
-        //        var status = await Permissions.RequestAsync<Permissions.Camera>();
-        //        if (status != PermissionStatus.Granted)
-        //        {
-        //            await DisplayAlert("Permiso denegado", "No se puede acceder a la cámara", "OK");
-        //            return;
-        //        }
+            // Capas
+            foreach (var layer in _template.Layers)
+            {
+                if (string.IsNullOrEmpty(layer.Base64Image)) continue;
+                var bytes = Convert.FromBase64String(layer.Base64Image);
+                using var lStream = new SKManagedStream(new MemoryStream(bytes));
+                using var lBitmap = SKBitmap.Decode(lStream);
+                surface.DrawBitmap(
+                    lBitmap,
+                    new SKRect(
+                        (float)layer.X,
+                        (float)layer.Y,
+                        (float)(layer.X + layer.Width),
+                        (float)(layer.Y + layer.Height)
+                    )
+                );
+            }
 
-        //        // Abrir la cámara
-        //        var photo = await MediaPicker.CapturePhotoAsync();
-        //        if (photo == null)
-        //            return;
+            // Fotos del usuario
+            for (int i = 0; i < _photoStreams.Count; i++)
+            {
+                var slot = _template.PhotoSlots[i];
+                _photoStreams[i].Position = 0;
+                using var sBitmap = SKBitmap.Decode(_photoStreams[i]);
+                surface.DrawBitmap(sBitmap, new SKRect((float)slot.X, (float)slot.Y, (float)(slot.X + slot.Width), (float)(slot.Y + slot.Height)));
+            }
 
-        //        // Mostrar la foto
-        //        var stream = await photo.OpenReadAsync();
-        //        PreviewImage.Source = ImageSource.FromStream(() => stream);
+            // Mostrar el resultado
+            using var image = SKImage.FromBitmap(canvas);
+            using var data = image.Encode(SKEncodedImageFormat.Jpeg, 90);
+            var finalStream = new MemoryStream();
+            data.SaveTo(finalStream);
+            finalStream.Position = 0;
 
-        //        // Actualizar semicírculo
-        //        await AnimatePhotoIndexAsync(2, 4); // cambia según la foto actual
-        //    }
-        //    catch (FeatureNotSupportedException)
-        //    {
-        //        await DisplayAlert("Error", "La cámara no está soportada en este dispositivo.", "OK");
-        //    }
-        //    catch (PermissionException)
-        //    {
-        //        await DisplayAlert("Error", "Permisos de cámara no concedidos.", "OK");
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        await DisplayAlert("Error", $"Ocurrió un problema: {ex.Message}", "OK");
-        //    }
-        //}
+            await Dispatcher.DispatchAsync(() =>
+            {
+                PreviewImage.Source = ImageSource.FromStream(() => finalStream);
+            });
+        }
+
+
 
         private async void OnTakePhotoClicked(object sender, EventArgs e)
         {
-            var cts = new CancellationTokenSource(TimeSpan.FromSeconds(3));
-            var stream = await CameraView.CaptureImage(cts.Token);
-            if (stream != null)
+            try
             {
-                PreviewImage.Source = ImageSource.FromStream(() => stream);
-                PreviewImage.IsVisible = true;
-                await AnimatePhotoIndexAsync(2, 4);
+                _photoStreams.Clear(); // Limpiar fotos anteriores si las hay
+
+                for (int i = 0; i < _template.PhotoCount; i++)
+                {
+                    await AnimateCountdownAsync(3);
+                    await AnimatePhotoIndexAsync(i + 1, _template.PhotoCount);
+
+                    var cts = new CancellationTokenSource(TimeSpan.FromSeconds(3));
+                    var stream = await CameraView.CaptureImage(cts.Token);
+                    if (stream != null)
+                    {
+                        // Guardar copia del stream para uso posterior
+                        var memStream = new MemoryStream();
+                        await stream.CopyToAsync(memStream);
+                        memStream.Position = 0;
+                        _photoStreams.Add(memStream);
+
+                        // Previsualizar
+                        if (i == _template.PhotoCount - 1)
+                        {
+                            PreviewImage.Source = ImageSource.FromStream(() => new MemoryStream(memStream.ToArray()));
+                            PreviewImage.IsVisible = true;
+                        }
+                    }
+                }
+
+                // Generar imagen final
+                await GenerateFinalImageAsync();
+            }
+            catch (Exception ex)
+            {
+                await DisplayAlert("Error", ex.Message, "OK");
             }
         }
 

@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Reflection;
 using System.Windows.Input;
 
 namespace KawaiiBooth.Pages;
@@ -13,7 +14,14 @@ public partial class TemplateSelectionPage : ContentPage
     }
     public ICommand TemplateTappedCommand => new Command(async () => {
         // Acción que deseas hacer
-        await Shell.Current.GoToAsync("///CameraPage");
+        var assembly = Assembly.GetExecutingAssembly();
+        var resources = assembly.GetManifestResourceNames();
+        foreach (var res in resources)
+        {
+            Console.WriteLine(res); // o usa Debug.WriteLine(res) en MAUI
+        }
+        await Shell.Current.GoToAsync($"{nameof(CameraPage)}?templateName=template1");
+
     });
 
 }
