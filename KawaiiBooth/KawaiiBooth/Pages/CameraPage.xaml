@@ -2,7 +2,10 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="KawaiiBooth.Pages.CameraPage"
              BackgroundColor="#FFF0F5"
-             Title="Photobot">
+             Title="Photobot"
+xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+
+             >
     <Grid>
         <Image Source="background.png"
                Aspect="AspectFill"
@@ -36,11 +39,19 @@
 
                 <Grid>
                     <!-- Vista de cámara o imagen -->
-                    <Image x:Name="PreviewImage"
-           BackgroundColor="Black"
-           Aspect="AspectFill" />
+              
+                        <toolkit:CameraView 
+    x:Name="CameraView"
+    SelectedCamera="{Binding SelectedCamera}"
+    CameraFlashMode="{Binding FlashMode}"
+    ZoomFactor="{Binding CurrentZoom}"
+    ImageCaptureResolution="{Binding SelectedResolution}"
+    />
+                        <Image x:Name="PreviewImage"
+BackgroundColor="Black" IsVisible="False"
+Aspect="AspectFill" />
 
-                    <!-- Semicírculo superior (contador) -->
+                        <!-- Semicírculo superior (contador) -->
                     <Border
     x:Name="CountdownSemiCircle"
     WidthRequest="120"
