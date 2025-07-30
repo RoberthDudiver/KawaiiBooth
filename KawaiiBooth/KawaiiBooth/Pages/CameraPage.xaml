@@ -1,0 +1,9 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="KawaiiBooth.Pages.CameraPage">
+    <StackLayout VerticalOptions="Center" HorizontalOptions="Center" Spacing="20">
+        <Label x:Name="CountdownLabel" Text="" FontSize="48" IsVisible="False" />
+        <Button Text="Iniciar fotos" Clicked="OnStartCameraClicked"/>
+        <!-- Aquí irá la vista previa de cámara más adelante -->
+    </StackLayout>
+</ContentPage>

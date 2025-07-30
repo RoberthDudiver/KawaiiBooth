@@ -1,1 +1,0 @@
-// Código base listo para correr con navegación y plantilla kawaii
