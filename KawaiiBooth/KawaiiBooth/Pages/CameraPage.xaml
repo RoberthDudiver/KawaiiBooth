@@ -1,9 +1,109 @@
+<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="KawaiiBooth.Pages.CameraPage">
-    <StackLayout VerticalOptions="Center" HorizontalOptions="Center" Spacing="20">
-        <Label x:Name="CountdownLabel" Text="" FontSize="48" IsVisible="False" />
-        <Button Text="Iniciar fotos" Clicked="OnStartCameraClicked"/>
-        <!-- Aquí irá la vista previa de cámara más adelante -->
-    </StackLayout>
+             x:Class="KawaiiBooth.Pages.CameraPage"
+             BackgroundColor="#FFF0F5"
+             Title="Photobot">
+
+    <Grid RowDefinitions="Auto,*,Auto" Padding="0,10">
+
+        <!-- Encabezado -->
+        <Label Text="photobot"
+               FontSize="24"
+               HorizontalOptions="Center"
+               TextColor="Black"
+               FontAttributes="Bold"
+               Margin="0,10"/>
+
+        <!-- Contenedor rosa de cámara -->
+        <Grid Grid.Row="1" Padding="10">
+            <Border Stroke="#DDA0DD" StrokeThickness="4" BackgroundColor="White" StrokeShape="RoundRectangle 25">
+                <Grid RowDefinitions="Auto,*,Auto">
+
+                    <!-- Contador grande arriba -->
+                    <Label x:Name="CountdownLabel"
+                           Grid.Row="0"
+                           Text="3"
+                           FontSize="48"
+                           BackgroundColor="#FFB6C1"
+                           TextColor="Black"
+                           FontAttributes="Bold"
+                           HorizontalTextAlignment="Center"
+                           VerticalTextAlignment="Center"
+                           HeightRequest="60"
+                           WidthRequest="80"
+                           HorizontalOptions="Center"
+                           VerticalOptions="Start"
+                           Margin="0,10"
+                           IsVisible="True" />
+
+                    <!-- Imagen de la cámara o preview -->
+                    <Image x:Name="PreviewImage"
+                           Grid.Row="1"
+                           Aspect="AspectFill"
+                           BackgroundColor="Black"
+                           Margin="10"
+                           HorizontalOptions="Fill"
+                           VerticalOptions="Fill" />
+
+                    <!-- Indicador de foto actual (2-1) -->
+                    <Label x:Name="CounterLabel"
+                           Grid.Row="2"
+                           Text="2-1"
+                           FontSize="24"
+                           TextColor="Black"
+                           BackgroundColor="#FFB6C1"
+                           FontAttributes="Bold"
+                           HorizontalTextAlignment="Center"
+                           VerticalTextAlignment="Center"
+                           HeightRequest="40"
+                           WidthRequest="100"
+                           HorizontalOptions="Center"
+                           VerticalOptions="End"
+                           Margin="0,10" />
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- Botones inferiores -->
+        <Grid Grid.Row="2"
+              ColumnSpacing="30"
+              Padding="20"
+              HorizontalOptions="Center">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Botón de cambiar cámara -->
+            <ImageButton Grid.Column="0"
+                         Source="switch_camera.png"
+                         WidthRequest="60"
+                         HeightRequest="60"
+                         BackgroundColor="Pink"
+                         Clicked="OnSwitchCameraClicked"
+                         CornerRadius="30"/>
+
+            <!-- Botón de captura -->
+            <ImageButton Grid.Column="1"
+                         Source="shutter.png"
+                         WidthRequest="80"
+                         HeightRequest="80"
+                         BackgroundColor="White"
+                         Clicked="OnTakePhotoClicked"
+                         CornerRadius="40"
+                         BorderColor="HotPink"
+                         BorderWidth="2"/>
+
+            <!-- Botón de galería -->
+            <ImageButton Grid.Column="2"
+                         Source="preview.png"
+                         WidthRequest="60"
+                         HeightRequest="60"
+                         BackgroundColor="Pink"
+                         Clicked="OnPreviewClicked"
+                         CornerRadius="30"/>
+        </Grid>
+    </Grid>
 </ContentPage>

@@ -11,9 +11,9 @@ public partial class TemplateSelectionPage : ContentPage
         BindingContext = this; // 👈 Esto hace que el XAML vea tus propiedades y comandos
 
     }
-    public ICommand TemplateTappedCommand => new Command(() => {
+    public ICommand TemplateTappedCommand => new Command(async () => {
         // Acción que deseas hacer
-        Debug.WriteLine("¡Botón presionado!");
+        await Shell.Current.GoToAsync("///CameraPage");
     });
 
 }

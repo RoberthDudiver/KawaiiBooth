@@ -1,43 +1,28 @@
-using Microsoft.Maui.Controls;
 using System;
-using System.Threading.Tasks;
-using System.Media;
+using Microsoft.Maui.Controls;
 
-namespace KawaiiBooth.Pages;
-
-public partial class CameraPage : ContentPage
+namespace KawaiiBooth.Pages
 {
-    public CameraPage()
+    public partial class CameraPage : ContentPage
     {
-        InitializeComponent();
-    }
-
-    private async void OnStartCameraClicked(object sender, EventArgs e)
-    {
-        CountdownLabel.IsVisible = true;
-
-        for (int i = 3; i > 0; i--)
+        public CameraPage()
         {
-            CountdownLabel.Text = i.ToString();
-            await Task.Delay(1000);
+            InitializeComponent();
         }
 
-        CountdownLabel.Text = "¡Foto!";
-        // Aquí podrías reproducir un sonido, ejemplo básico:
-        try
+        private void OnSwitchCameraClicked(object sender, EventArgs e)
         {
-            var player = await FileSystem.OpenAppPackageFileAsync("shutter.mp3");
-            var stream = player;
-            // reproducir sonido según plataforma (requiere implementación por plataforma)
-        }
-        catch (Exception)
-        {
-            // manejar error
+            // Cambiar entre cámara frontal y trasera
         }
 
-        await Task.Delay(1000);
-        CountdownLabel.IsVisible = false;
+        private void OnTakePhotoClicked(object sender, EventArgs e)
+        {
+            // Lógica para tomar la foto
+        }
 
-        await Shell.Current.GoToAsync("ResultPage");
+        private void OnPreviewClicked(object sender, EventArgs e)
+        {
+            // Mostrar vista previa o galería
+        }
     }
 }

@@ -15,7 +15,7 @@
             <ControlTemplate x:Key="BasePageTemplate">
                 <Grid>
                     <!-- Fondo con imagen -->
-                    <Image Source="background.png"
+                    <Image Source="Resources/background.png"
                            Aspect="AspectFill"
                            Opacity="1" />
 
