@@ -1,13 +1,18 @@
-<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="KawaiiBooth.Pages.CameraPage"
              BackgroundColor="#FFF0F5"
              Title="Photobot">
+    <Grid>
+        <Image Source="background.png"
+               Aspect="AspectFill"
+               Opacity="1"
+               
+               />
 
-    <Grid RowDefinitions="Auto,*,Auto" Padding="0,10">
+        <Grid Padding="10" RowDefinitions="Auto,*,Auto">
 
-        <!-- Encabezado -->
+        <!-- Título -->
         <Label Text="photobot"
                FontSize="24"
                HorizontalOptions="Center"
@@ -15,95 +20,136 @@
                FontAttributes="Bold"
                Margin="0,10"/>
 
-        <!-- Contenedor rosa de cámara -->
-        <Grid Grid.Row="1" Padding="10">
-            <Border Stroke="#DDA0DD" StrokeThickness="4" BackgroundColor="White" StrokeShape="RoundRectangle 25">
-                <Grid RowDefinitions="Auto,*,Auto">
+        <!-- Vista principal -->
+        <Grid Grid.Row="1"
+              Padding="0"
+              Margin="0,10"
+              VerticalOptions="FillAndExpand">
 
-                    <!-- Contador grande arriba -->
-                    <Label x:Name="CountdownLabel"
-                           Grid.Row="0"
-                           Text="3"
-                           FontSize="48"
-                           BackgroundColor="#FFB6C1"
-                           TextColor="Black"
-                           FontAttributes="Bold"
-                           HorizontalTextAlignment="Center"
-                           VerticalTextAlignment="Center"
-                           HeightRequest="60"
-                           WidthRequest="80"
-                           HorizontalOptions="Center"
-                           VerticalOptions="Start"
-                           Margin="0,10"
-                           IsVisible="True" />
+            <!-- Marco visual general -->
+            <Border Stroke="#F4BBD4"
+                    StrokeThickness="10"
+                    BackgroundColor="White"
+                    StrokeShape="RoundRectangle 30"
+                    Padding="0"
+                    Margin="10">
 
-                    <!-- Imagen de la cámara o preview -->
+                <Grid>
+                    <!-- Vista de cámara o imagen -->
                     <Image x:Name="PreviewImage"
-                           Grid.Row="1"
-                           Aspect="AspectFill"
-                           BackgroundColor="Black"
-                           Margin="10"
-                           HorizontalOptions="Fill"
-                           VerticalOptions="Fill" />
+           BackgroundColor="Black"
+           Aspect="AspectFill" />
 
-                    <!-- Indicador de foto actual (2-1) -->
-                    <Label x:Name="CounterLabel"
-                           Grid.Row="2"
-                           Text="2-1"
-                           FontSize="24"
-                           TextColor="Black"
-                           BackgroundColor="#FFB6C1"
-                           FontAttributes="Bold"
-                           HorizontalTextAlignment="Center"
-                           VerticalTextAlignment="Center"
-                           HeightRequest="40"
-                           WidthRequest="100"
-                           HorizontalOptions="Center"
-                           VerticalOptions="End"
-                           Margin="0,10" />
+                    <!-- Semicírculo superior (contador) -->
+                    <Border
+    x:Name="CountdownSemiCircle"
+    WidthRequest="120"
+    HeightRequest="60"
+    BackgroundColor="#FDE8F0"
+    Stroke="#F4BBD4"
+    StrokeThickness="5"
+    HorizontalOptions="Center"
+    VerticalOptions="Start"
+    Margin="0,-5,0,0"
+    StrokeShape="RoundRectangle 0,0,60,60">
+
+                        <Label
+        x:Name="CountdownLabel"
+        Text="3"
+        FontSize="30"
+        HorizontalOptions="Center"
+        VerticalOptions="Center"
+        TextColor="Red"
+        FontAttributes="Bold" />
+                    </Border>
+
+
+                    <!-- Semicírculo inferior (foto actual) -->
+                    <Border
+    x:Name="PhotoIndexSemiCircle"
+    WidthRequest="120"
+    HeightRequest="60"
+    BackgroundColor="#FDE8F0"
+    Stroke="#F4BBD4"
+    StrokeThickness="5"
+    HorizontalOptions="Center"
+    VerticalOptions="End"
+    Margin="0,0,0,-5"
+    StrokeShape="RoundRectangle 60,60,0,0">
+
+                        <Label
+        x:Name="PhotoIndexLabel"
+        Text="1-4"
+        FontSize="20"
+        HorizontalOptions="Center"
+        VerticalOptions="Center"
+        TextColor="Black"
+        FontAttributes="Bold" />
+                    </Border>
+
                 </Grid>
+
             </Border>
         </Grid>
 
-        <!-- Botones inferiores -->
-        <Grid Grid.Row="2"
-              ColumnSpacing="30"
-              Padding="20"
-              HorizontalOptions="Center">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto"/>
-            </Grid.ColumnDefinitions>
+        <!-- Botonera -->
+            <Grid Grid.Row="2"
+      Margin="0,10,0,20"
+      HorizontalOptions="Center">
 
-            <!-- Botón de cambiar cámara -->
-            <ImageButton Grid.Column="0"
-                         Source="switch_camera.png"
-                         WidthRequest="60"
-                         HeightRequest="60"
-                         BackgroundColor="Pink"
-                         Clicked="OnSwitchCameraClicked"
-                         CornerRadius="30"/>
+                <!-- Fondo semitransparente con esquinas redondeadas -->
+                <Border BackgroundColor="#CCFFF0F5"  
+                    Stroke="#F4BBD4"
+            StrokeThickness="2"
+            WidthRequest="300"
+            HeightRequest="100"
+            StrokeShape="RoundRectangle 50"
+            VerticalOptions="Center"
+            HorizontalOptions="Center"
+            />
 
-            <!-- Botón de captura -->
-            <ImageButton Grid.Column="1"
-                         Source="shutter.png"
+                    <!-- Botonera encima -->
+                    <StackLayout Orientation="Horizontal"
+                 HorizontalOptions="Center"
+                 VerticalOptions="Center"
+                 Spacing="30">
+
+                        <!-- Botón cambiar cámara -->
+                        <ImageButton Source="switch_camera.png"
+                     WidthRequest="60"
+                     HeightRequest="60"
+                     BackgroundColor="Pink"
+                     CornerRadius="30"
+                     Clicked="OnSwitchCameraClicked"/>
+
+                        <!-- Botón tomar foto con borde redondo -->
+                        <Border Stroke="HotPink"
+                StrokeThickness="3"
+                BackgroundColor="White"
+                WidthRequest="90"
+                HeightRequest="90"
+                StrokeShape="RoundRectangle 45"
+                VerticalOptions="Center"
+                HorizontalOptions="Center">
+                            <ImageButton Source="shutter.png"
+                         BackgroundColor="Transparent"
                          WidthRequest="80"
                          HeightRequest="80"
-                         BackgroundColor="White"
-                         Clicked="OnTakePhotoClicked"
-                         CornerRadius="40"
-                         BorderColor="HotPink"
-                         BorderWidth="2"/>
+                         Clicked="OnTakePhotoClicked" />
+                        </Border>
 
-            <!-- Botón de galería -->
-            <ImageButton Grid.Column="2"
-                         Source="preview.png"
-                         WidthRequest="60"
-                         HeightRequest="60"
-                         BackgroundColor="Pink"
-                         Clicked="OnPreviewClicked"
-                         CornerRadius="30"/>
+                        <!-- Botón ver foto previa -->
+                        <ImageButton Source="preview.png"
+                     WidthRequest="60"
+                     HeightRequest="60"
+                     BackgroundColor="Pink"
+                     CornerRadius="30"
+                     Clicked="OnPreviewClicked"/>
+                    </StackLayout>
+            </Grid>
+
         </Grid>
-    </Grid>
+    
+    
+</Grid>
 </ContentPage>
