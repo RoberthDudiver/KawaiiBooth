@@ -4,15 +4,17 @@
              BackgroundColor="#FFF0F5"
              Title="Photobot"
 xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             xmlns:local="clr-namespace:KawaiiBooth.Pages"
 
              >
     <Grid>
+
         <Image Source="background.png"
                Aspect="AspectFill"
                Opacity="0.5"
                
                />
-
+      
         <Grid Padding="10" RowDefinitions="Auto,*,Auto">
 
         <!-- Título -->
@@ -91,7 +93,7 @@ Aspect="AspectFill" />
 
                         <Label
         x:Name="PhotoIndexLabel"
-        Text="1-4"
+        Text="0-0"
         FontSize="20"
         HorizontalOptions="Center"
         VerticalOptions="Center"
@@ -161,7 +163,73 @@ Aspect="AspectFill" />
             </Grid>
 
         </Grid>
-    
-    
-</Grid>
+        <StackLayout x:Name="PopupOverlay"
+             IsVisible="False"
+             BackgroundColor="#80000000"
+             VerticalOptions="FillAndExpand"
+             HorizontalOptions="FillAndExpand"
+             Padding="0"
+             InputTransparent="False"
+             ZIndex="100">
+
+            <Grid VerticalOptions="Center"
+          HorizontalOptions="Center"
+          WidthRequest="320"
+          BackgroundColor="Transparent"
+          Padding="10">
+
+                <Border
+            Stroke="#F4BBD4"
+            StrokeThickness="5"
+            BackgroundColor="#FFF0F5"
+            StrokeShape="RoundRectangle 30"
+            Padding="20">
+
+                    <VerticalStackLayout Spacing="20"
+                                 HorizontalOptions="Center"
+                                 VerticalOptions="Center">
+
+                        <!-- Imagen resultante -->
+                        <Image x:Name="PopupFinalImage"
+                       WidthRequest="240"
+                       HeightRequest="360"
+                       Aspect="Fill" 
+                       BackgroundColor="White"
+                       />
+
+                        <!-- Botones -->
+                        <local:KawaiiButton2
+                    BorderColor="#C8AEE4"
+                    TopColor="#E6D6F9"
+                    BottomColor="#C8AEE4"
+                    GlossColor="#F2E7FB"
+                    ImageSource="save.png"
+                    Text1="Guardar"
+                    Text2="imagen"
+                    TapCommand="{Binding SaveTapped}" />
+
+                        <local:KawaiiButton2
+                    BorderColor="#F7A1A1"
+                    TopColor="#FCDDDD"
+                    BottomColor="#F7A1A1"
+                    GlossColor="#FFEDED"
+                    ImageSource="close.png"
+                    Text1="Cerrar"
+                    Text2="ventana"
+                    TapCommand="{Binding CloseTapped}" />
+
+                    </VerticalStackLayout>
+                </Border>
+            </Grid>
+        </StackLayout>
+
+
+        <toolkit:MediaElement
+    x:Name="ShutterSound"
+    Source="shutter.mp3"
+    IsVisible="False"
+    ShouldAutoPlay="False"
+    Volume="1" />
+
+    </Grid>
 </ContentPage>

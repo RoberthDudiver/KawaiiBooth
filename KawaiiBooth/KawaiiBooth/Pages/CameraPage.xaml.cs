@@ -5,12 +5,75 @@ using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using System.Windows.Input;
 using static Microsoft.Maui.ApplicationModel.Permissions;
 
 namespace KawaiiBooth.Pages
 {
     public partial class CameraPage : ContentPage, IQueryAttributable
     {
+        public CameraPage()
+        {
+            InitializeComponent();
+            BindingContext = this;
+        }
+        private byte[] _finalImageBytes;
+
+        public ICommand SaveTapped => new Command(async () =>
+        {
+            PopupOverlay.IsVisible = false;
+
+        
+                await SaveImageToGalleryAsync();
+        
+
+        });
+        public ICommand  CloseTapped=> new Command(() =>
+        {
+            PopupOverlay.IsVisible = false;
+         
+
+        });
+
+        private async Task SaveImageToGalleryAsync()
+        {
+            
+            var imageStream  = new MemoryStream(_finalImageBytes);
+            try
+            {
+                var fileName = $"photobot_{DateTime.Now:yyyyMMdd_HHmmss}.jpg";
+
+#if ANDROID
+        await KawaiiBooth.Platforms.ImageSaver.SaveToGalleryAsync(imageStream, fileName);
+#elif IOS
+        var imageData = Foundation.NSData.FromStream(imageStream);
+        var uiImage = UIKit.UIImage.LoadFromData(imageData);
+        uiImage?.SaveToPhotosAlbum((img, err) =>
+        {
+            // Podés mostrar mensaje si querés
+        });
+#elif WINDOWS || MACCATALYST
+                var picturesPath = Environment.GetFolderPath(Environment.SpecialFolder.MyPictures);
+                var destPath = Path.Combine(picturesPath, fileName);
+                using (var fileStream = File.Create(destPath))
+                {
+                    imageStream.Position = 0;
+                    await imageStream.CopyToAsync(fileStream);
+                }
+#endif
+
+                await Application.Current.MainPage.DisplayAlert("Éxito", "¡Imagen guardada en galería!", "OK");
+            }
+            catch (Exception ex)
+            {
+                await Application.Current.MainPage.DisplayAlert("Error", $"No se pudo guardar: {ex.Message}", "OK");
+            }
+
+            PhotoIndexLabel.Text = $"0-{_template.PhotoCount}";
+        }
+
+
+
         public void ApplyQueryAttributes(IDictionary<string, object> query)
         {
             if (query.TryGetValue("templateName", out var nameObj) && nameObj is string templateName)
@@ -18,11 +81,16 @@ namespace KawaiiBooth.Pages
                 LoadTemplate(templateName);
             }
         }
-        public CameraPage()
+  
+        private void PlayShutterSound()
         {
-            InitializeComponent();
+            ShutterSound.Stop(); 
+    
+            ShutterSound.Play();
         }
+       
 
+  
         private async void LoadTemplate(string templateName)
         {
             _template = await LoadTemplateFromResource(templateName);
@@ -77,7 +145,7 @@ namespace KawaiiBooth.Pages
             base64 = base64.Trim().Replace("\n", "").Replace("\r", "").Replace(" ", "");
             using var transform = new FromBase64Transform(FromBase64TransformMode.IgnoreWhiteSpaces);
             byte[] inputBytes = Encoding.ASCII.GetBytes(base64);
-            return transform.TransformFinalBlock(inputBytes, 0, inputBytes.Length); throw new FormatException("Base64 inválido o corrupto.");
+            return transform.TransformFinalBlock(inputBytes, 0, inputBytes.Length); 
             
         }
         private async Task GenerateFinalImageAsync()
@@ -89,7 +157,7 @@ namespace KawaiiBooth.Pages
             // Fondo
             if (!string.IsNullOrEmpty(_template.BackgroundBase64))
             {
-              
+
 
                 var bgBytes = FromBase64String(_template.BackgroundBase64);
                 using var bgStream = new SKManagedStream(new MemoryStream(bgBytes));
@@ -98,7 +166,7 @@ namespace KawaiiBooth.Pages
             }
 
             // Capas
-         
+
             // Fotos del usuario
             for (int i = 0; i < _photoStreams.Count; i++)
             {
@@ -130,14 +198,35 @@ namespace KawaiiBooth.Pages
             using var data = image.Encode(SKEncodedImageFormat.Jpeg, 90);
             var finalStream = new MemoryStream();
             data.SaveTo(finalStream);
+            _finalImageBytes = finalStream.ToArray();
             finalStream.Position = 0;
 
+            await preview();
+        }
+
+        private async Task preview()
+        {
             await Dispatcher.DispatchAsync(() =>
             {
-                PreviewImage.Source = ImageSource.FromStream(() => finalStream);
+                var img = ImageSource.FromStream(() => new MemoryStream(_finalImageBytes));
+                PopupFinalImage.Source = img;
+                PopupOverlay.IsVisible = true;
+
             });
         }
 
+        public async Task<Stream?> GetStreamFromImageSourceAsync(ImageSource source)
+        {
+            if (source is StreamImageSource streamImageSource)
+            {
+                var cancellationToken = CancellationToken.None;
+                var stream = await streamImageSource.Stream(cancellationToken);
+                return stream;
+            }
+
+            await Application.Current.MainPage.DisplayAlert("Error", "La imagen no puede ser guardada (no es válida)", "OK");
+            return null;
+        }
 
 
         private async void OnTakePhotoClicked(object sender, EventArgs e)
@@ -159,13 +248,15 @@ namespace KawaiiBooth.Pages
                         var memStream = new MemoryStream();
                         await stream.CopyToAsync(memStream);
                         memStream.Position = 0;
+                        memStream = FlipImageHorizontally(memStream);
                         _photoStreams.Add(memStream);
+                        PlayShutterSound();
 
                         // Previsualizar
                         if (i == _template.PhotoCount - 1)
                         {
                             PreviewImage.Source = ImageSource.FromStream(() => new MemoryStream(memStream.ToArray()));
-                            PreviewImage.IsVisible = true;
+                           
                         }
                     }
                 }
@@ -179,10 +270,32 @@ namespace KawaiiBooth.Pages
             }
         }
 
-
-
-        private void OnPreviewClicked(object sender, EventArgs e)
+        private MemoryStream FlipImageHorizontally(MemoryStream originalStream)
         {
+            originalStream.Position = 0;
+            using var bitmap = SKBitmap.Decode(originalStream);
+
+            using var flippedBitmap = new SKBitmap(bitmap.Width, bitmap.Height);
+            using (var canvas = new SKCanvas(flippedBitmap))
+            {
+                canvas.Scale(-1, 1); // Invertir horizontal
+                canvas.Translate(-bitmap.Width, 0);
+                canvas.DrawBitmap(bitmap, 0, 0);
+            }
+
+            using var image = SKImage.FromBitmap(flippedBitmap);
+            using var data = image.Encode(SKEncodedImageFormat.Jpeg, 90);
+
+            var output = new MemoryStream();
+            data.SaveTo(output);
+            output.Position = 0;
+            return output;
+        }
+
+
+        private async void OnPreviewClicked(object sender, EventArgs e)
+        { 
+            await preview();
             // Mostrar vista previa o galería
         }
     }
