@@ -1,3 +1,4 @@
+using CommunityToolkit.Maui.Views;
 using Microsoft.Maui.Controls;
 using SkiaSharp;
 using System;
@@ -119,11 +120,39 @@ namespace KawaiiBooth.Pages
             await PhotoIndexSemiCircle.ScaleTo(1.1, 100);
             await PhotoIndexSemiCircle.ScaleTo(1.0, 100);
         }
-
-        private void OnSwitchCameraClicked(object sender, EventArgs e)
+        protected async override void OnAppearing()
         {
-            // Cambiar entre cámara frontal y trasera
+        base.OnAppearing();
+            var cts = new CancellationToken();
+            var cameras = await CameraView.GetAvailableCameras(cts);
+            var front = cameras.FirstOrDefault(c => c.Position == CommunityToolkit.Maui.Core.CameraPosition.Front);
+            if (front != null)
+                CameraView.SelectedCamera = front;
         }
+        private async void OnSwitchCameraClicked(object sender, EventArgs e)
+        {
+            var cts = new CancellationToken();
+            var cameras = await CameraView.GetAvailableCameras(cts);
+
+            if (cameras is null || cameras.Count == 0)
+                return;
+
+            // Si está en frontal → cambiar a trasera
+            if (CameraView.SelectedCamera?.Position == CommunityToolkit.Maui.Core.CameraPosition.Front)
+            {
+                var rear = cameras.FirstOrDefault(c => c.Position == CommunityToolkit.Maui.Core.CameraPosition.Rear);
+                if (rear != null)
+                    CameraView.SelectedCamera = rear;
+            }
+            else
+            {
+                // Si está en trasera → cambiar a frontal
+                var front = cameras.FirstOrDefault(c => c.Position == CommunityToolkit.Maui.Core.CameraPosition.Front);
+                if (front != null)
+                    CameraView.SelectedCamera = front;
+            }
+        }
+
         public async Task<TemplateModel> LoadTemplateFromResource(string name)
         {
             var file = $"KawaiiBooth.Resources.Templates.{name}.json";
@@ -248,7 +277,7 @@ namespace KawaiiBooth.Pages
                         var memStream = new MemoryStream();
                         await stream.CopyToAsync(memStream);
                         memStream.Position = 0;
-                        memStream = FlipImageHorizontally(memStream);
+                        memStream = FixOrientationToPortrait(memStream);
                         _photoStreams.Add(memStream);
                         PlayShutterSound();
 
@@ -268,6 +297,35 @@ namespace KawaiiBooth.Pages
             {
                 await DisplayAlert("Error", ex.Message, "OK");
             }
+        }
+        private MemoryStream FixOrientationToPortrait(MemoryStream inputStream)
+        {
+            inputStream.Position = 0;
+            using var bitmap = SKBitmap.Decode(inputStream);
+
+            // Si la imagen es más ancha que alta, la rotamos 90º
+            if (bitmap.Width > bitmap.Height)
+            {
+                using var surfaceBitmap = new SKBitmap(bitmap.Height, bitmap.Width);
+                using (var canvas = new SKCanvas(surfaceBitmap))
+                {
+                    canvas.Translate(surfaceBitmap.Width, 0);
+                    canvas.RotateDegrees(90);
+                    canvas.DrawBitmap(bitmap, 0, 0);
+                }
+
+                using var rotatedImage = SKImage.FromBitmap(surfaceBitmap);
+                using var data = rotatedImage.Encode(SKEncodedImageFormat.Jpeg, 90);
+
+                var output = new MemoryStream();
+                data.SaveTo(output);
+                output.Position = 0;
+                return output;
+            }
+
+            // Si ya es vertical, la devolvemos igual
+            inputStream.Position = 0;
+            return new MemoryStream(inputStream.ToArray());
         }
 
         private MemoryStream FlipImageHorizontally(MemoryStream originalStream)
@@ -289,7 +347,7 @@ namespace KawaiiBooth.Pages
             var output = new MemoryStream();
             data.SaveTo(output);
             output.Position = 0;
-            return output;
+            return  output;
         }
 
 
