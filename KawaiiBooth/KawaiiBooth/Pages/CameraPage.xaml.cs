@@ -74,7 +74,7 @@ namespace KawaiiBooth.Pages
         }
 
 
-
+        public int camera = 0;
         public void ApplyQueryAttributes(IDictionary<string, object> query)
         {
             if (query.TryGetValue("templateName", out var nameObj) && nameObj is string templateName)
@@ -123,6 +123,7 @@ namespace KawaiiBooth.Pages
         protected async override void OnAppearing()
         {
         base.OnAppearing();
+            camera = 0;
             var cts = new CancellationToken();
             var cameras = await CameraView.GetAvailableCameras(cts);
             var front = cameras.FirstOrDefault(c => c.Position == CommunityToolkit.Maui.Core.CameraPosition.Front);
@@ -140,6 +141,7 @@ namespace KawaiiBooth.Pages
             // Si está en frontal → cambiar a trasera
             if (CameraView.SelectedCamera?.Position == CommunityToolkit.Maui.Core.CameraPosition.Front)
             {
+                camera = 1;
                 var rear = cameras.FirstOrDefault(c => c.Position == CommunityToolkit.Maui.Core.CameraPosition.Rear);
                 if (rear != null)
                     CameraView.SelectedCamera = rear;
@@ -147,6 +149,8 @@ namespace KawaiiBooth.Pages
             else
             {
                 // Si está en trasera → cambiar a frontal
+                camera = 0;
+
                 var front = cameras.FirstOrDefault(c => c.Position == CommunityToolkit.Maui.Core.CameraPosition.Front);
                 if (front != null)
                     CameraView.SelectedCamera = front;
@@ -257,40 +261,48 @@ namespace KawaiiBooth.Pages
             return null;
         }
 
-
         private async void OnTakePhotoClicked(object sender, EventArgs e)
         {
             try
             {
-                _photoStreams.Clear(); // Limpiar fotos anteriores si las hay
+                _photoStreams.Clear();
 
                 for (int i = 0; i < _template.PhotoCount; i++)
                 {
+                  
+                    // Lanzar animación y esperar que se pinte en pantalla
                     await AnimateCountdownAsync(3);
                     await AnimatePhotoIndexAsync(i + 1, _template.PhotoCount);
 
+                    // Esperar un frame para que el render se actualice
+                    await Task.Delay(50);
+
                     var cts = new CancellationTokenSource(TimeSpan.FromSeconds(3));
+
+                    // Ahora sí capturar
                     var stream = await CameraView.CaptureImage(cts.Token);
+
                     if (stream != null)
                     {
-                        // Guardar copia del stream para uso posterior
                         var memStream = new MemoryStream();
                         await stream.CopyToAsync(memStream);
                         memStream.Position = 0;
-                        memStream = FixOrientationToPortrait(memStream);
+
+                   
+
+                        // Corregir orientación a vertical
+                        memStream = camera == 1 ? FixOrientationToPortrait(memStream,false) : FixOrientationToPortrait( memStream,true);
+
                         _photoStreams.Add(memStream);
                         PlayShutterSound();
 
-                        // Previsualizar
                         if (i == _template.PhotoCount - 1)
                         {
                             PreviewImage.Source = ImageSource.FromStream(() => new MemoryStream(memStream.ToArray()));
-                           
                         }
                     }
                 }
 
-                // Generar imagen final
                 await GenerateFinalImageAsync();
             }
             catch (Exception ex)
@@ -298,37 +310,51 @@ namespace KawaiiBooth.Pages
                 await DisplayAlert("Error", ex.Message, "OK");
             }
         }
-        private MemoryStream FixOrientationToPortrait(MemoryStream inputStream)
+
+
+        private MemoryStream FixOrientationToPortrait(MemoryStream inputStream, bool isFrontCamera)
         {
             inputStream.Position = 0;
             using var bitmap = SKBitmap.Decode(inputStream);
 
-            // Si la imagen es más ancha que alta, la rotamos 90º
-            if (bitmap.Width > bitmap.Height)
+            // Si ya es vertical, no rotamos
+            if (bitmap.Height >= bitmap.Width)
             {
-                using var surfaceBitmap = new SKBitmap(bitmap.Height, bitmap.Width);
-                using (var canvas = new SKCanvas(surfaceBitmap))
-                {
-                    canvas.Translate(surfaceBitmap.Width, 0);
-                    canvas.RotateDegrees(90);
-                    canvas.DrawBitmap(bitmap, 0, 0);
-                }
-
-                using var rotatedImage = SKImage.FromBitmap(surfaceBitmap);
-                using var data = rotatedImage.Encode(SKEncodedImageFormat.Jpeg, 90);
-
-                var output = new MemoryStream();
-                data.SaveTo(output);
-                output.Position = 0;
-                return output;
+                inputStream.Position = 0;
+                return new MemoryStream(inputStream.ToArray());
             }
 
-            // Si ya es vertical, la devolvemos igual
-            inputStream.Position = 0;
-            return new MemoryStream(inputStream.ToArray());
+            // Rotación para poner en vertical
+            using var surfaceBitmap = new SKBitmap(bitmap.Height, bitmap.Width);
+            using (var canvas = new SKCanvas(surfaceBitmap))
+            {
+                if (isFrontCamera)
+                {
+                    // Frontal: rotar al revés (-90°)
+                    canvas.Translate(0, surfaceBitmap.Height);
+                    canvas.RotateDegrees(-90);
+                }
+                else
+                {
+                    // Trasera: rotar normal (+90°)
+                    canvas.Translate(surfaceBitmap.Width, 0);
+                    canvas.RotateDegrees(90);
+                }
+
+                canvas.DrawBitmap(bitmap, 0, 0);
+            }
+
+            using var rotatedImage = SKImage.FromBitmap(surfaceBitmap);
+            using var data = rotatedImage.Encode(SKEncodedImageFormat.Jpeg, 90);
+
+            var output = new MemoryStream();
+            data.SaveTo(output);
+            output.Position = 0;
+            return output;
         }
 
-        private MemoryStream FlipImageHorizontally(MemoryStream originalStream)
+
+        private MemoryStream FlipImageHorizontally(MemoryStream originalStream , int grades =90)
         {
             originalStream.Position = 0;
             using var bitmap = SKBitmap.Decode(originalStream);
@@ -342,7 +368,7 @@ namespace KawaiiBooth.Pages
             }
 
             using var image = SKImage.FromBitmap(flippedBitmap);
-            using var data = image.Encode(SKEncodedImageFormat.Jpeg, 90);
+            using var data = image.Encode(SKEncodedImageFormat.Jpeg, grades);
 
             var output = new MemoryStream();
             data.SaveTo(output);
