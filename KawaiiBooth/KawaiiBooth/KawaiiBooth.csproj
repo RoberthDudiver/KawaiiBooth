@@ -95,6 +95,8 @@
 	</ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\Templates\*.json" />
+    <EmbeddedResource Include="Resources\Templates\*.txt" />
+
   </ItemGroup>
 
 

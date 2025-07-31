@@ -2,6 +2,8 @@ using Microsoft.Maui.Controls;
 using SkiaSharp;
 using System;
 using System.Reflection;
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.Json;
 using static Microsoft.Maui.ApplicationModel.Permissions;
 
@@ -62,6 +64,22 @@ namespace KawaiiBooth.Pages
             var json = await reader.ReadToEndAsync();
             return JsonSerializer.Deserialize<TemplateModel>(json);
         }
+
+        public static string SanitizeBase64(string base64)
+        {
+            // Solo mantener caracteres válidos en base64: A-Z, a-z, 0-9, +, / y hasta 2 =
+            return new string(base64
+                .Where(c => char.IsLetterOrDigit(c) || c == '+' || c == '/' || c == '=')
+                .ToArray());
+        }
+        public static byte[] FromBase64String(string base64)
+        {
+            base64 = base64.Trim().Replace("\n", "").Replace("\r", "").Replace(" ", "");
+            using var transform = new FromBase64Transform(FromBase64TransformMode.IgnoreWhiteSpaces);
+            byte[] inputBytes = Encoding.ASCII.GetBytes(base64);
+            return transform.TransformFinalBlock(inputBytes, 0, inputBytes.Length); throw new FormatException("Base64 inválido o corrupto.");
+            
+        }
         private async Task GenerateFinalImageAsync()
         {
             var canvas = new SKBitmap(_template.CanvasWidth, _template.CanvasHeight);
@@ -71,17 +89,29 @@ namespace KawaiiBooth.Pages
             // Fondo
             if (!string.IsNullOrEmpty(_template.BackgroundBase64))
             {
-                var bgBytes = Convert.FromBase64String(_template.BackgroundBase64);
+              
+
+                var bgBytes = FromBase64String(_template.BackgroundBase64);
                 using var bgStream = new SKManagedStream(new MemoryStream(bgBytes));
                 using var bgBitmap = SKBitmap.Decode(bgStream);
                 surface.DrawBitmap(bgBitmap, new SKRect(0, 0, canvas.Width, canvas.Height));
             }
 
             // Capas
+         
+            // Fotos del usuario
+            for (int i = 0; i < _photoStreams.Count; i++)
+            {
+                var slot = _template.PhotoSlots[i];
+                _photoStreams[i].Position = 0;
+                using var sBitmap = SKBitmap.Decode(_photoStreams[i]);
+                surface.DrawBitmap(sBitmap, new SKRect((float)slot.X, (float)slot.Y, (float)(slot.X + slot.Width), (float)(slot.Y + slot.Height)));
+            }
+
             foreach (var layer in _template.Layers)
             {
                 if (string.IsNullOrEmpty(layer.Base64Image)) continue;
-                var bytes = Convert.FromBase64String(layer.Base64Image);
+                var bytes = FromBase64String(layer.Base64Image);
                 using var lStream = new SKManagedStream(new MemoryStream(bytes));
                 using var lBitmap = SKBitmap.Decode(lStream);
                 surface.DrawBitmap(
@@ -93,15 +123,6 @@ namespace KawaiiBooth.Pages
                         (float)(layer.Y + layer.Height)
                     )
                 );
-            }
-
-            // Fotos del usuario
-            for (int i = 0; i < _photoStreams.Count; i++)
-            {
-                var slot = _template.PhotoSlots[i];
-                _photoStreams[i].Position = 0;
-                using var sBitmap = SKBitmap.Decode(_photoStreams[i]);
-                surface.DrawBitmap(sBitmap, new SKRect((float)slot.X, (float)slot.Y, (float)(slot.X + slot.Width), (float)(slot.Y + slot.Height)));
             }
 
             // Mostrar el resultado
