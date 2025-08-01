@@ -24,35 +24,35 @@ namespace KawaiiBooth.Pages
         {
             PopupOverlay.IsVisible = false;
 
-        
-                await SaveImageToGalleryAsync();
-        
+
+            await SaveImageToGalleryAsync();
+
 
         });
-        public ICommand  CloseTapped=> new Command(() =>
+        public ICommand CloseTapped => new Command(() =>
         {
             PopupOverlay.IsVisible = false;
-         
+
 
         });
 
         private async Task SaveImageToGalleryAsync()
         {
-            
-            var imageStream  = new MemoryStream(_finalImageBytes);
+
+            var imageStream = new MemoryStream(_finalImageBytes);
             try
             {
                 var fileName = $"photobot_{DateTime.Now:yyyyMMdd_HHmmss}.jpg";
 
 #if ANDROID
-        await KawaiiBooth.Platforms.ImageSaver.SaveToGalleryAsync(imageStream, fileName);
+                await KawaiiBooth.Platforms.ImageSaver.SaveToGalleryAsync(imageStream, fileName);
 #elif IOS
-        var imageData = Foundation.NSData.FromStream(imageStream);
-        var uiImage = UIKit.UIImage.LoadFromData(imageData);
-        uiImage?.SaveToPhotosAlbum((img, err) =>
-        {
-            // Podés mostrar mensaje si querés
-        });
+                var imageData = Foundation.NSData.FromStream(imageStream);
+                var uiImage = UIKit.UIImage.LoadFromData(imageData);
+                uiImage?.SaveToPhotosAlbum((img, err) =>
+                {
+                    // Podés mostrar mensaje si querés
+                });
 #elif WINDOWS || MACCATALYST
                 var picturesPath = Environment.GetFolderPath(Environment.SpecialFolder.MyPictures);
                 var destPath = Path.Combine(picturesPath, fileName);
@@ -82,16 +82,28 @@ namespace KawaiiBooth.Pages
                 LoadTemplate(templateName);
             }
         }
-  
-        private void PlayShutterSound()
-        {
-            ShutterSound.Stop(); 
-    
-            ShutterSound.Play();
-        }
-       
 
-  
+        // Modificamos el método para que sea asíncrono y más robusto
+        private async Task PlayShutterSoundAsync()
+        {
+            try
+            {
+                // Aseguramos que el MediaElement esté listo para reproducir
+                ShutterSound.Stop();
+                ShutterSound.SeekTo(TimeSpan.Zero);
+                // Damos un pequeño retraso para que el sistema se prepare
+                await Task.Delay(50);
+                ShutterSound.Play();
+            }
+            catch (Exception ex)
+            {
+                // En caso de error, lo imprimimos en la consola
+                System.Diagnostics.Debug.WriteLine($"Error al reproducir el sonido: {ex.Message}");
+            }
+        }
+
+
+
         private async void LoadTemplate(string templateName)
         {
             _template = await LoadTemplateFromResource(templateName);
@@ -104,25 +116,34 @@ namespace KawaiiBooth.Pages
             for (int i = count; i > 0; i--)
             {
                 CountdownLabel.Text = i.ToString();
+                // Aumentar la escala y esperar un breve momento para que la UI se actualice
                 await CountdownSemiCircle.ScaleTo(1.2, 150, Easing.CubicOut);
+                await Task.Delay(500);
+                // Volver a la escala normal y esperar otro momento
                 await CountdownSemiCircle.ScaleTo(1.0, 150, Easing.CubicIn);
+                await Task.Delay(500);
             }
 
             // Simular flash
             await CountdownSemiCircle.FadeTo(0, 100);
+            await Task.Delay(50);
             await CountdownSemiCircle.FadeTo(1, 100);
+            await Task.Delay(50);
             CountdownLabel.Text = "3";
         }
 
         private async Task AnimatePhotoIndexAsync(int current, int total)
         {
             PhotoIndexLabel.Text = $"{current}-{total}";
+            // Animar el semicírculo y esperar
             await PhotoIndexSemiCircle.ScaleTo(1.1, 100);
+            await Task.Delay(50);
             await PhotoIndexSemiCircle.ScaleTo(1.0, 100);
+            await Task.Delay(50);
         }
         protected async override void OnAppearing()
         {
-        base.OnAppearing();
+            base.OnAppearing();
             camera = 0;
             var cts = new CancellationToken();
             var cameras = await CameraView.GetAvailableCameras(cts);
@@ -178,8 +199,8 @@ namespace KawaiiBooth.Pages
             base64 = base64.Trim().Replace("\n", "").Replace("\r", "").Replace(" ", "");
             using var transform = new FromBase64Transform(FromBase64TransformMode.IgnoreWhiteSpaces);
             byte[] inputBytes = Encoding.ASCII.GetBytes(base64);
-            return transform.TransformFinalBlock(inputBytes, 0, inputBytes.Length); 
-            
+            return transform.TransformFinalBlock(inputBytes, 0, inputBytes.Length);
+
         }
         private async Task GenerateFinalImageAsync()
         {
@@ -269,17 +290,12 @@ namespace KawaiiBooth.Pages
 
                 for (int i = 0; i < _template.PhotoCount; i++)
                 {
-                  
-                    // Lanzar animación y esperar que se pinte en pantalla
                     await AnimateCountdownAsync(3);
                     await AnimatePhotoIndexAsync(i + 1, _template.PhotoCount);
 
-                    // Esperar un frame para que el render se actualice
                     await Task.Delay(50);
 
                     var cts = new CancellationTokenSource(TimeSpan.FromSeconds(3));
-
-                    // Ahora sí capturar
                     var stream = await CameraView.CaptureImage(cts.Token);
 
                     if (stream != null)
@@ -288,25 +304,30 @@ namespace KawaiiBooth.Pages
                         await stream.CopyToAsync(memStream);
                         memStream.Position = 0;
 
-                   
-
-                        // Corregir orientación a vertical
-                        memStream = camera == 1 ? FixOrientationToPortrait(memStream,false) : FixOrientationToPortrait( memStream,true);
+                        memStream = camera == 1
+                            ? FixOrientationToPortrait(memStream, false)
+                            : FixOrientationToPortrait(memStream, true);
 
                         _photoStreams.Add(memStream);
-                        PlayShutterSound();
+                        await PlayShutterSoundAsync();
 
                         if (i == _template.PhotoCount - 1)
-                        {
                             PreviewImage.Source = ImageSource.FromStream(() => new MemoryStream(memStream.ToArray()));
-                        }
                     }
                 }
 
+                // 💖 Mostrar el overlay kawaii mientras procesa
+                ProcessingOverlay.IsVisible = true;
+
+                await Task.Delay(300); // pequeño delay para que se vea fluido
                 await GenerateFinalImageAsync();
+
+                // Ocultar el overlay kawaii cuando termine
+                ProcessingOverlay.IsVisible = false;
             }
             catch (Exception ex)
             {
+                ProcessingOverlay.IsVisible = false; // aseguramos ocultar en caso de error
                 await DisplayAlert("Error", ex.Message, "OK");
             }
         }
@@ -354,7 +375,7 @@ namespace KawaiiBooth.Pages
         }
 
 
-        private MemoryStream FlipImageHorizontally(MemoryStream originalStream , int grades =90)
+        private MemoryStream FlipImageHorizontally(MemoryStream originalStream, int grades = 90)
         {
             originalStream.Position = 0;
             using var bitmap = SKBitmap.Decode(originalStream);
@@ -373,12 +394,12 @@ namespace KawaiiBooth.Pages
             var output = new MemoryStream();
             data.SaveTo(output);
             output.Position = 0;
-            return  output;
+            return output;
         }
 
 
         private async void OnPreviewClicked(object sender, EventArgs e)
-        { 
+        {
             await preview();
             // Mostrar vista previa o galería
         }

@@ -89,9 +89,15 @@ public partial class KawaiiButton : ContentView
     {
         try
         {
-            // Animar solo el contenedor interno para evitar optimización de Border/ContentView
+          
+
+            // Animación de escala
             await AnimationContainer.ScaleTo(0.93, 100, Easing.CubicInOut);
+            await Task.Delay(100); // Pausa para permitir que la animación se complete visualmente
             await AnimationContainer.ScaleTo(1, 100, Easing.CubicInOut);
+
+            // Reanudar el reconocimiento de gestos
+      
 
             // Ejecutar comando si existe
             if (TapCommand?.CanExecute(null) == true)
@@ -99,6 +105,4 @@ public partial class KawaiiButton : ContentView
         }
         catch { }
     }
-
 }
-

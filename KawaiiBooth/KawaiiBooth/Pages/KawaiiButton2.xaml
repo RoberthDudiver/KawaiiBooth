@@ -3,8 +3,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="KawaiiBooth.Pages.KawaiiButton2"
              x:Name="Root">
-
-    <Border Stroke="{Binding Source={x:Reference Root}, Path=BorderColor}"
+    <Grid x:Name="AnimationContainer">
+        <Border Stroke="{Binding Source={x:Reference Root}, Path=BorderColor}"
             StrokeThickness="5"
             StrokeShape="RoundRectangle 40"
             HeightRequest="90"
@@ -24,7 +24,7 @@
                      CornerRadius="40"
                      VerticalOptions="Start"
                      BackgroundColor="{Binding Source={x:Reference Root}, Path=GlossColor}"
-                     Opacity="0.5" />
+                     Opacity="0.5"  />
 
             <!-- Contenido del botón -->
             <Grid>
@@ -67,4 +67,6 @@
             </Grid>
         </Grid>
     </Border>
+    </Grid>
+
 </ContentView>

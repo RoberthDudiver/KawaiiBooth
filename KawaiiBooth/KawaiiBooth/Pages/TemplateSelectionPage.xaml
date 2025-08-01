@@ -30,7 +30,7 @@
                                     ImageSource="wine.png"
                                     TapCommand="{Binding TemplateTappedCommand}"
                                     Text1="Fiesta "
-                                    Text2="de Vino"/>
+                                    Text2="de Vino" />
 
                 <local:KawaiiButton BorderColor="#B2D3F4"
                                     TopColor="#D6EBFB"
@@ -39,7 +39,7 @@
                                     ImageSource="cat.png"
                                     TapCommand="{Binding TemplateTappedCommand}"
                                     Text1="Gatitos"
-                                    Text2="Tiernos"/>
+                                    Text2="Tiernos" IsEnabled="False"/>
 
                 <local:KawaiiButton BorderColor="#F9C89B"
                                     TopColor="#FFE5CC"
@@ -48,7 +48,7 @@
                                     ImageSource="arepa.png"
                                     TapCommand="{Binding TemplateTappedCommand}"
                                     Text1="Venezuela"
-                                    Text2="Querida"/>
+                                    Text2="Querida" IsEnabled="False"/>
 
                 <local:KawaiiButton BorderColor="#A8E6CF"
                                     TopColor="#DFF8EB"
@@ -57,7 +57,7 @@
                                     ImageSource="medialuna.png"
                                     TapCommand="{Binding TemplateTappedCommand}"
                                     Text1="Argentina"
-                                    Text2="Querida"/>
+                                    Text2="Querida" IsEnabled="False"/>
 
                 <local:KawaiiButton BorderColor="#F7A1A1"
                                     TopColor="#FCDDDD"
@@ -66,7 +66,7 @@
                                     ImageSource="party.png"
                                     TapCommand="{Binding TemplateTappedCommand}"
                                     Text1="Feliz"
-                                    Text2="Cumpleaños"/>
+                                    Text2="Cumpleaños" IsEnabled="False"/>
 
             </VerticalStackLayout>
 
