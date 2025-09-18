@@ -45,7 +45,7 @@ xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
     ImageCaptureResolution="{Binding SelectedResolution}"
     />
                         <Image x:Name="PreviewImage"
-BackgroundColor="Black" IsVisible="False"
+BackgroundColor="Transparent" IsVisible="False"
 Aspect="AspectFill" />
 
                         <!-- Semicírculo superior (contador) -->

@@ -129,7 +129,7 @@ namespace KawaiiBooth.Pages
             await Task.Delay(50);
             await CountdownSemiCircle.FadeTo(1, 100);
             await Task.Delay(50);
-            CountdownLabel.Text = "3";
+          
         }
 
         private async Task AnimatePhotoIndexAsync(int current, int total)
@@ -153,6 +153,8 @@ namespace KawaiiBooth.Pages
         }
         private async void OnSwitchCameraClicked(object sender, EventArgs e)
         {
+            CameraView.IsVisible = true;
+            PreviewImage.IsVisible = false;
             var cts = new CancellationToken();
             var cameras = await CameraView.GetAvailableCameras(cts);
 
@@ -290,9 +292,17 @@ namespace KawaiiBooth.Pages
 
                 for (int i = 0; i < _template.PhotoCount; i++)
                 {
-                    await AnimateCountdownAsync(3);
+                    // Oculta la vista previa y la cámara si estaban visibles del ciclo anterior
+                    PreviewImage.IsVisible = false;
+                    CameraView.IsVisible = true;
+
+                    // Actualiza el contador de fotos
                     await AnimatePhotoIndexAsync(i + 1, _template.PhotoCount);
 
+                    // Inicia la cuenta regresiva
+                    await AnimateCountdownAsync(3);
+
+                    // Un pequeño retraso antes de capturar la imagen
                     await Task.Delay(50);
 
                     var cts = new CancellationTokenSource(TimeSpan.FromSeconds(3));
@@ -306,28 +316,46 @@ namespace KawaiiBooth.Pages
 
                         memStream = camera == 1
                             ? FixOrientationToPortrait(memStream, false)
-                            : FixOrientationToPortrait(memStream, true);
+                            : FlipImageHorizontally(FixOrientationToPortrait(memStream, true));
 
                         _photoStreams.Add(memStream);
                         await PlayShutterSoundAsync();
 
-                        if (i == _template.PhotoCount - 1)
-                            PreviewImage.Source = ImageSource.FromStream(() => new MemoryStream(memStream.ToArray()));
+                        // Oculta el CameraView para mostrar la vista previa
+                        CameraView.IsVisible = false;
+                        PreviewImage.IsVisible = true;
+                        PreviewImage.Opacity = 1; // Asegura que la imagen sea completamente visible
+
+                        // Establece la imagen capturada en la vista previa
+                        PreviewImage.Source = ImageSource.FromStream(() => new MemoryStream(memStream.ToArray()));
+
+                        // Espera 1 segundo para que el usuario vea la foto
+                        await Task.Delay(1000);
+
+                        // Anima un desvanecimiento suave (fade out)
+                        await PreviewImage.FadeTo(0, 500); // 500 milisegundos para la animación
                     }
                 }
 
-                // 💖 Mostrar el overlay kawaii mientras procesa
+                // Al final del bucle, volvemos a mostrar el CameraView y ocultamos la PreviewImage
+                CameraView.IsVisible = true;
+                PreviewImage.IsVisible = false;
+
+                // Muestra el overlay kawaii mientras procesa las imágenes
                 ProcessingOverlay.IsVisible = true;
 
-                await Task.Delay(300); // pequeño delay para que se vea fluido
+                await Task.Delay(300);
                 await GenerateFinalImageAsync();
 
-                // Ocultar el overlay kawaii cuando termine
+                // Oculta el overlay kawaii cuando termine
                 ProcessingOverlay.IsVisible = false;
             }
             catch (Exception ex)
             {
-                ProcessingOverlay.IsVisible = false; // aseguramos ocultar en caso de error
+                // En caso de error, aseguramos que todo se oculte
+                ProcessingOverlay.IsVisible = false;
+                CameraView.IsVisible = true;
+                PreviewImage.IsVisible = false;
                 await DisplayAlert("Error", ex.Message, "OK");
             }
         }

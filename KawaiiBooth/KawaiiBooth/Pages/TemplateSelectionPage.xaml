@@ -31,15 +31,22 @@
                                     TapCommand="{Binding TemplateTappedCommand}"
                                     Text1="Fiesta "
                                     Text2="de Vino" />
-
-                <local:KawaiiButton BorderColor="#B2D3F4"
+                    <local:KawaiiButton BorderColor="#F7A1A1"
+                         TopColor="#FCDDDD"
+                         BottomColor="#F7A1A1"
+                         GlossColor="#FFEDED"
+                         ImageSource="party.png"
+                         TapCommand="{Binding TemplateTappedcumpleCommand}"
+                         Text1="Feliz"
+                         Text2="Cumpleaños" />
+                    <local:KawaiiButton BorderColor="#B2D3F4"
                                     TopColor="#D6EBFB"
                                     BottomColor="#B2D3F4"
                                     GlossColor="#E9F5FE"
                                     ImageSource="cat.png"
                                     TapCommand="{Binding TemplateTappedCommand}"
                                     Text1="Gatitos"
-                                    Text2="Tiernos" IsEnabled="False"/>
+                                    Text2="Tiernos" IsEnabled="False" IsVisible="False"/>
 
                 <local:KawaiiButton BorderColor="#F9C89B"
                                     TopColor="#FFE5CC"
@@ -48,7 +55,7 @@
                                     ImageSource="arepa.png"
                                     TapCommand="{Binding TemplateTappedCommand}"
                                     Text1="Venezuela"
-                                    Text2="Querida" IsEnabled="False"/>
+                                    Text2="Querida" IsEnabled="False" IsVisible="False"/>
 
                 <local:KawaiiButton BorderColor="#A8E6CF"
                                     TopColor="#DFF8EB"
@@ -57,16 +64,9 @@
                                     ImageSource="medialuna.png"
                                     TapCommand="{Binding TemplateTappedCommand}"
                                     Text1="Argentina"
-                                    Text2="Querida" IsEnabled="False"/>
+                                    Text2="Querida" IsEnabled="False"  IsVisible="False"/>
 
-                <local:KawaiiButton BorderColor="#F7A1A1"
-                                    TopColor="#FCDDDD"
-                                    BottomColor="#F7A1A1"
-                                    GlossColor="#FFEDED"
-                                    ImageSource="party.png"
-                                    TapCommand="{Binding TemplateTappedCommand}"
-                                    Text1="Feliz"
-                                    Text2="Cumpleaños" IsEnabled="False"/>
+           
 
             </VerticalStackLayout>
 
