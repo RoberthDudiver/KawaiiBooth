@@ -1,11 +1,16 @@
-<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+﻿<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="KawaiiBooth.Pages.TemplateSelectionPage"
              xmlns:local="clr-namespace:KawaiiBooth.Pages"
 
              Background="{AppThemeBinding Light={StaticResource PageBackgroundGradient}, Dark=Black}">
-
-    <ScrollView>
+    <Grid>
+        <Image Source="background.png"
+            Aspect="AspectFill"
+            Opacity="0.5"
+            
+            />
+        <ScrollView>
         <VerticalStackLayout Padding="20" Spacing="25" VerticalOptions="Center" HorizontalOptions="Center">
 
             <Label Text="Elige una plantilla"
@@ -22,49 +27,51 @@
                                     TopColor="#E6D6F9"
                                     BottomColor="#C8AEE4"
                                     GlossColor="#F2E7FB"
-                                    ImageSource="cat.png"
+                                    ImageSource="wine.png"
                                     TapCommand="{Binding TemplateTappedCommand}"
-                                    Text1="Selfie"
-                                    Text2="Templates"/>
-
-                <local:KawaiiButton BorderColor="#B2D3F4"
+                                    Text1="Fiesta "
+                                    Text2="de Vino" />
+                    <local:KawaiiButton BorderColor="#F7A1A1"
+                         TopColor="#FCDDDD"
+                         BottomColor="#F7A1A1"
+                         GlossColor="#FFEDED"
+                         ImageSource="party.png"
+                         TapCommand="{Binding TemplateTappedcumpleCommand}"
+                         Text1="Feliz"
+                         Text2="Cumpleaños" />
+                    <local:KawaiiButton BorderColor="#B2D3F4"
                                     TopColor="#D6EBFB"
                                     BottomColor="#B2D3F4"
                                     GlossColor="#E9F5FE"
                                     ImageSource="cat.png"
                                     TapCommand="{Binding TemplateTappedCommand}"
-                                    Text1="Selfie"
-                                    Text2="Templates"/>
+                                    Text1="Gatitos"
+                                    Text2="Tiernos" IsEnabled="False" IsVisible="False"/>
 
                 <local:KawaiiButton BorderColor="#F9C89B"
                                     TopColor="#FFE5CC"
                                     BottomColor="#F9C89B"
                                     GlossColor="#FFF2E0"
-                                    ImageSource="cat.png"
+                                    ImageSource="arepa.png"
                                     TapCommand="{Binding TemplateTappedCommand}"
-                                    Text1="Selfie"
-                                    Text2="Templates"/>
+                                    Text1="Venezuela"
+                                    Text2="Querida" IsEnabled="False" IsVisible="False"/>
 
                 <local:KawaiiButton BorderColor="#A8E6CF"
                                     TopColor="#DFF8EB"
                                     BottomColor="#A8E6CF"
                                     GlossColor="#EDFCF3"
-                                    ImageSource="cat.png"
+                                    ImageSource="medialuna.png"
                                     TapCommand="{Binding TemplateTappedCommand}"
-                                    Text1="Selfie"
-                                    Text2="Templates"/>
+                                    Text1="Argentina"
+                                    Text2="Querida" IsEnabled="False"  IsVisible="False"/>
 
-                <local:KawaiiButton BorderColor="#F7A1A1"
-                                    TopColor="#FCDDDD"
-                                    BottomColor="#F7A1A1"
-                                    GlossColor="#FFEDED"
-                                    ImageSource="cat.png"
-                                    TapCommand="{Binding TemplateTappedCommand}"
-                                    Text1="Selfie"
-                                    Text2="Templates"/>
+           
 
             </VerticalStackLayout>
 
         </VerticalStackLayout>
     </ScrollView>
+    </Grid>
+
 </ContentPage>

@@ -1,6 +1,6 @@
-﻿using Microsoft.Extensions.Logging;
-using CommunityToolkit.Maui;
-using CommunityToolkit.Maui;
+﻿using CommunityToolkit.Maui;
+using Microsoft.Extensions.Logging;
+using SkiaSharp.Views.Maui.Controls.Hosting;
 
 namespace KawaiiBooth
 {
@@ -13,7 +13,17 @@ namespace KawaiiBooth
             {
                 fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
                 fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
-            }).UseMauiCommunityToolkitCamera().UseMauiCommunityToolkit();
+            }).UseMauiCommunityToolkitCamera().UseMauiCommunityToolkit().UseSkiaSharp().UseMauiCommunityToolkitMediaElement();
+
+            AppDomain.CurrentDomain.UnhandledException += (s, e) =>
+            {
+                System.Diagnostics.Debug.WriteLine($"KAWAI [Unhandled Exception] {e.ExceptionObject}");
+            };
+            TaskScheduler.UnobservedTaskException += (s, e) =>
+            {
+                System.Diagnostics.Debug.WriteLine($"KAWAI [Unobserved Task Exception] {e.Exception}");
+            };
+
 #if DEBUG
             builder.Logging.AddDebug();
 #endif

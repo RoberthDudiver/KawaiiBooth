@@ -87,13 +87,22 @@ public partial class KawaiiButton : ContentView
 
     private async void OnTapped(object sender, EventArgs e)
     {
-        // Animación
-        await this.ScaleTo(0.95, 80);
-        await this.ScaleTo(1, 80);
+        try
+        {
+          
 
-        // Ejecutar comando
-        if (TapCommand?.CanExecute(null) == true)
-            TapCommand.Execute(null);
+            // Animación de escala
+            await AnimationContainer.ScaleTo(0.93, 100, Easing.CubicInOut);
+            await Task.Delay(100); // Pausa para permitir que la animación se complete visualmente
+            await AnimationContainer.ScaleTo(1, 100, Easing.CubicInOut);
+
+            // Reanudar el reconocimiento de gestos
+      
+
+            // Ejecutar comando si existe
+            if (TapCommand?.CanExecute(null) == true)
+                TapCommand.Execute(null);
+        }
+        catch { }
     }
 }
-

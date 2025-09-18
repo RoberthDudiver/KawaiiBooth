@@ -4,24 +4,20 @@
              BackgroundColor="#FFF0F5"
              Title="Photobot"
 xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             xmlns:local="clr-namespace:KawaiiBooth.Pages"
 
              >
     <Grid>
+
         <Image Source="background.png"
                Aspect="AspectFill"
-               Opacity="1"
+               Opacity="0.5"
                
                />
-
+      
         <Grid Padding="10" RowDefinitions="Auto,*,Auto">
 
-        <!-- Título -->
-        <Label Text="photobot"
-               FontSize="24"
-               HorizontalOptions="Center"
-               TextColor="Black"
-               FontAttributes="Bold"
-               Margin="0,10"/>
+    
 
         <!-- Vista principal -->
         <Grid Grid.Row="1"
@@ -44,11 +40,12 @@ xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
     x:Name="CameraView"
     SelectedCamera="{Binding SelectedCamera}"
     CameraFlashMode="{Binding FlashMode}"
+                            
     ZoomFactor="{Binding CurrentZoom}"
     ImageCaptureResolution="{Binding SelectedResolution}"
     />
                         <Image x:Name="PreviewImage"
-BackgroundColor="Black" IsVisible="False"
+BackgroundColor="Transparent" IsVisible="False"
 Aspect="AspectFill" />
 
                         <!-- Semicírculo superior (contador) -->
@@ -90,8 +87,8 @@ Aspect="AspectFill" />
 
                         <Label
         x:Name="PhotoIndexLabel"
-        Text="1-4"
-        FontSize="20"
+        Text="0-0"
+        FontSize="30"
         HorizontalOptions="Center"
         VerticalOptions="Center"
         TextColor="Black"
@@ -160,7 +157,118 @@ Aspect="AspectFill" />
             </Grid>
 
         </Grid>
-    
-    
-</Grid>
+        <StackLayout x:Name="PopupOverlay"
+             IsVisible="False"
+             BackgroundColor="#80000000"
+             VerticalOptions="FillAndExpand"
+             HorizontalOptions="FillAndExpand"
+             Padding="0"
+             InputTransparent="False"
+             ZIndex="100">
+
+            <Grid VerticalOptions="Center"
+          HorizontalOptions="Center"
+          WidthRequest="320"
+          BackgroundColor="Transparent"
+          Padding="10">
+
+                <Border
+            Stroke="#F4BBD4"
+            StrokeThickness="5"
+            BackgroundColor="#FFF0F5"
+            StrokeShape="RoundRectangle 30"
+            Padding="20">
+
+                    <VerticalStackLayout Spacing="20"
+                                 HorizontalOptions="Center"
+                                 VerticalOptions="Center">
+
+                        <!-- Imagen resultante -->
+                        <Image x:Name="PopupFinalImage"
+                       WidthRequest="240"
+                       HeightRequest="360"
+                       Aspect="Fill" 
+                       BackgroundColor="White"
+                       />
+
+                        <!-- Botones -->
+                        <local:KawaiiButton2
+                    BorderColor="#C8AEE4"
+                    TopColor="#E6D6F9"
+                    BottomColor="#C8AEE4"
+                    GlossColor="#F2E7FB"
+                    ImageSource="save.png"
+                    Text1="Guardar"
+                    Text2="imagen"
+                    TapCommand="{Binding SaveTapped}" />
+
+                        <local:KawaiiButton2
+                    BorderColor="#F7A1A1"
+                    TopColor="#FCDDDD"
+                    BottomColor="#F7A1A1"
+                    GlossColor="#FFEDED"
+                    ImageSource="close.png"
+                    Text1="Cerrar"
+                    Text2="ventana"
+                    TapCommand="{Binding CloseTapped}" />
+
+                    </VerticalStackLayout>
+                </Border>
+            </Grid>
+        </StackLayout>
+
+        <!-- Overlay kawaii de progreso -->
+        <Grid x:Name="ProcessingOverlay"
+      IsVisible="False"
+      BackgroundColor="#80000080"
+      VerticalOptions="FillAndExpand"
+      HorizontalOptions="FillAndExpand"
+      ZIndex="999">
+
+            <!-- Contenedor centrado -->
+            <Grid VerticalOptions="Center"
+          HorizontalOptions="Center">
+
+                <Border Stroke="#F4BBD4"
+                StrokeThickness="5"
+                BackgroundColor="#FFF0F5"
+                StrokeShape="RoundRectangle 30"
+                Padding="30"
+                WidthRequest="260">
+
+                    <VerticalStackLayout Spacing="15"
+                                  HorizontalOptions="Center"
+                                  VerticalOptions="Center">
+
+                        <!-- Icono kawaii -->
+                        <Image Source="loading_kawaii.png"
+                       WidthRequest="80"
+                       HeightRequest="80" />
+
+                        <!-- ActivityIndicator -->
+                        <ActivityIndicator IsRunning="True"
+                                   Color="#F48FB1"
+                                   WidthRequest="50"
+                                   HeightRequest="50" />
+
+                        <!-- Texto kawaii -->
+                        <Label Text="Procesando..."
+                       FontSize="18"
+                       FontAttributes="Bold"
+                       HorizontalOptions="Center"
+                       TextColor="#D81B60"/>
+                    </VerticalStackLayout>
+                </Border>
+            </Grid>
+        </Grid>
+
+        <toolkit:MediaElement
+    x:Name="ShutterSound"
+    Source="shutter.mp3"
+    IsVisible="False"
+    ShouldAutoPlay="False"
+    Volume="1" />
+        <!-- Popup kawaii de progreso -->
+      
+    </Grid>
 </ContentPage>
